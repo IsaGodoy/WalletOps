@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="WalletOps.API/WalletOps.API.csproj" />
+  <Project Path="WalletOps.Application/WalletOps.Application.csproj" />
+  <Project Path="WalletOps.Domain/WalletOps.Domain.csproj" />
+  <Project Path="WalletOps.Infrastructure/WalletOps.Infrastructure.csproj" />
+</Solution>
