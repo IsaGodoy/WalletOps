@@ -12,11 +12,13 @@ namespace WalletOps.Application.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly ITransferRepository _transferRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public TransferService(IAccountRepository accountRepository, ITransferRepository transferRepository)
+        public TransferService(IAccountRepository accountRepository, ITransferRepository transferRepository, IUnitOfWork unitOfWork)
         {
             _accountRepository = accountRepository;
             _transferRepository = transferRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task ExecuteAsync(CreateTransferRequest request, CancellationToken cancellationToken = default)
@@ -61,6 +63,7 @@ namespace WalletOps.Application.Services
             await _accountRepository.UpdateAsync(fromAccount, cancellationToken);
             await _accountRepository.UpdateAsync(toAccount, cancellationToken);
             await _transferRepository.AddAsync(transfer, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

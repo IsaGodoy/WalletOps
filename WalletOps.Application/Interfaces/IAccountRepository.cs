@@ -8,6 +8,7 @@ namespace WalletOps.Application.Interfaces
     public interface IAccountRepository
     {
         Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<List<Account>> GetAllAsync(CancellationToken cancellationToken = default);
         Task UpdateAsync(Account account, CancellationToken cancellationToken = default);
     }
 }
