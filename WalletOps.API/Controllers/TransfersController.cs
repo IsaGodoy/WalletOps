@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WalletOps.Application.DTOs;
 using WalletOps.Application.Interfaces;
 
@@ -6,6 +7,7 @@ namespace WalletOps.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "SystemAdmin,BankOfficer,Customer")]
     public class TransfersController : ControllerBase
     {
         private readonly ITransferService _transferService;
@@ -19,8 +21,15 @@ namespace WalletOps.API.Controllers
             [FromBody] CreateTransferRequest request,
             CancellationToken cancellationToken)
         {
-            await _transferService.ExecuteAsync(request, cancellationToken);
-            return Ok(new { message = "Transfer completed successfully." });
+            try
+            {
+                await _transferService.ExecuteAsync(request, cancellationToken);
+                return Ok(new { message = "Transfer completed successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

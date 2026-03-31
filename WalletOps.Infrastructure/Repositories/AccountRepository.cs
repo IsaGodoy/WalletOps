@@ -14,6 +14,17 @@ namespace WalletOps.Infrastructure.Repositories
             _context = context;
         }
 
+        public Task AddAsync(Account account, CancellationToken cancellationToken = default)
+        {
+            _context.Accounts.Add(account);
+            return Task.CompletedTask;
+        }
+
+        public async Task<bool> ExistsByAccountNumberAsync(string accountNumber, CancellationToken cancellationToken = default)
+        {
+            return await _context.Accounts.AnyAsync(x => x.AccountNumber == accountNumber, cancellationToken);
+        }
+
         public async Task<List<Account>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             return await _context.Accounts.ToListAsync(cancellationToken);
