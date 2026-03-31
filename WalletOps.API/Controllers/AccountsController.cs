@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WalletOps.Application.DTOs;
 using WalletOps.Application.Interfaces;
@@ -21,27 +20,20 @@ namespace WalletOps.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
-            try
-            {
-                var accounts = await _accountService.GetAllAsync(cancellationToken);
+            var accounts = await _accountService.GetAllAsync(cancellationToken);
 
-                var result = accounts.Select(a => new
-                {
-                    a.Id,
-                    a.CustomerId,
-                    a.AccountNumber,
-                    a.Currency,
-                    a.Balance,
-                    a.OverdraftLimit,
-                    a.Status
-                });
-
-                return Ok(result);
-            }
-            catch (Exception ex)
+            var result = accounts.Select(a => new
             {
-                return BadRequest(new { error = ex.Message });
-            }
+                a.Id,
+                a.CustomerId,
+                a.AccountNumber,
+                a.Currency,
+                a.Balance,
+                a.OverdraftLimit,
+                a.Status
+            });
+
+            return Ok(result);
         }
 
         [HttpPost]
@@ -49,8 +41,8 @@ namespace WalletOps.API.Controllers
         {
             try
             {
-                await _accountService.CreateAsync(request, cancellationToken);
-                return Created();
+                var accountId = await _accountService.CreateAsync(request, cancellationToken);
+                return Created(string.Empty, new { id = accountId });
             }
             catch (InvalidOperationException ex)
             {

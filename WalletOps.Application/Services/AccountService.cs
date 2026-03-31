@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletOps.Application.DTOs;
 using WalletOps.Application.Interfaces;
 using WalletOps.Domain.Entities;
@@ -21,34 +18,51 @@ namespace WalletOps.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
+        public async Task<Guid> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
         {
-            if(request == null)
+            if (request is null)
+            {
                 throw new InvalidOperationException("Request cannot be null.");
+            }
 
-            bool customerExists = await _customerRepository.ExistsByIdAsync(request.CustomerId);
+            if (string.IsNullOrWhiteSpace(request.AccountNumber))
+            {
+                throw new InvalidOperationException("Account number is required.");
+            }
 
-            if(!customerExists)
+            if (request.OverdraftLimit < 0)
+            {
+                throw new InvalidOperationException("Overdraft limit cannot be negative.");
+            }
+
+            bool customerExists = await _customerRepository.ExistsByIdAsync(request.CustomerId, cancellationToken);
+
+            if (!customerExists)
                 throw new InvalidOperationException($"Customer with ID {request.CustomerId} does not exist.");
 
-            bool accountNumberExists = await _accountRepository.ExistsByAccountNumberAsync(request.AccountNumber);
+            bool accountNumberExists = await _accountRepository.ExistsByAccountNumberAsync(request.AccountNumber, cancellationToken);
 
-            if(accountNumberExists)
+            if (accountNumberExists)
                 throw new InvalidOperationException($"Account number {request.AccountNumber} already exists.");
 
+            if (!Enum.IsDefined(typeof(Currency), request.Currency))
+                throw new InvalidOperationException("Invalid currency.");
+            
             var account = new Account
             {
                 Id = Guid.NewGuid(),
                 CustomerId = request.CustomerId,
                 AccountNumber = request.AccountNumber,
-                Currency = Currency.PYG,
+                Currency = (Currency)request.Currency,
                 OverdraftLimit = request.OverdraftLimit,
                 Balance = 0,
                 Status = AccountStatus.Active
             };
 
-            await _accountRepository.AddAsync(account);
+            await _accountRepository.AddAsync(account, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return account.Id;
         }
 
         public async Task<List<Account>> GetAllAsync(CancellationToken cancellationToken = default)

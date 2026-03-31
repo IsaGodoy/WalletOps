@@ -17,14 +17,20 @@ namespace WalletOps.Application.Services
 
         public async Task<Guid> CreateAsync(CreateCustomerRequest request, CancellationToken cancellationToken = default)
         {
-            if (request == null)
+            if (request is null)
+            {
                 throw new InvalidOperationException("Request cannot be null.");
+            }
 
-            if (request.FullName == null)
-                throw new InvalidOperationException("FullName cannot be null.");
+            if (string.IsNullOrWhiteSpace(request.FullName))
+            {
+                throw new InvalidOperationException("Full name is required.");
+            }
 
-            if (request.DocumentNumber == null)
-                throw new InvalidOperationException("DocumentNumber cannot be null.");
+            if (string.IsNullOrWhiteSpace(request.DocumentNumber))
+            {
+                throw new InvalidOperationException("Document number is required.");
+            }
 
             bool documentExists = await _customerRepository.ExistsByDocumentNumberAsync(request.DocumentNumber, cancellationToken);
 

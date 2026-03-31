@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WalletOps.Application.DTOs;
 using WalletOps.Application.Interfaces;
@@ -23,8 +22,8 @@ namespace WalletOps.API.Controllers
         {
             try
             {
-                await _customerService.CreateAsync(request, cancellationToken);
-                return Created();
+                var customerId = await _customerService.CreateAsync(request, cancellationToken);
+                return Created(string.Empty, new { id = customerId });
             }
             catch (InvalidOperationException ex)
             {

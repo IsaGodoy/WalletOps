@@ -5,7 +5,7 @@ namespace WalletOps.Application.Interfaces
 {
     public interface IAccountService
     {
-        Task CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default);
+        Task<Guid> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default);
         Task<List<Account>> GetAllAsync(CancellationToken cancellationToken = default);
     }
 }
