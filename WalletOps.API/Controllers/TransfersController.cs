@@ -31,5 +31,12 @@ namespace WalletOps.API.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        {
+            var transfers = await _transferService.GetAllAsync(cancellationToken);
+            return Ok(transfers);
+        }
     }
 }

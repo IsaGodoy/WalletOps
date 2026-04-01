@@ -8,5 +8,6 @@ namespace WalletOps.Application.Interfaces
     public interface ITransferRepository
     {
         Task AddAsync(Transfer transfer, CancellationToken cancellationToken = default);
+        Task<List<Transfer>> GetAllAsync(CancellationToken cancellationToken = default);
     }
 }

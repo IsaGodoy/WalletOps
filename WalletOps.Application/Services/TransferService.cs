@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletOps.Application.DTOs;
+﻿using WalletOps.Application.DTOs;
 using WalletOps.Application.Interfaces;
 using WalletOps.Domain.Entities;
 using WalletOps.Domain.Enums;
@@ -64,6 +61,22 @@ namespace WalletOps.Application.Services
             await _accountRepository.UpdateAsync(toAccount, cancellationToken);
             await _transferRepository.AddAsync(transfer, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<List<TransferListItemResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            var transfers = await _transferRepository.GetAllAsync(cancellationToken);
+
+            return transfers.Select(t => new TransferListItemResponse
+            {
+                Id = t.Id,
+                FromAccountId = t.FromAccountId,
+                ToAccountId = t.ToAccountId,
+                Amount = t.Amount,
+                Currency = t.Currency,
+                CreatedAtUtc = t.CreatedAtUtc,
+                Status = t.Status
+            }).ToList();
         }
     }
 }
