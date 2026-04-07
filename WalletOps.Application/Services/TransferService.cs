@@ -9,16 +9,26 @@ namespace WalletOps.Application.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly ITransferRepository _transferRepository;
+        private readonly ICustomerRepository _customerRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public TransferService(IAccountRepository accountRepository, ITransferRepository transferRepository, IUnitOfWork unitOfWork)
+        public TransferService(
+            IAccountRepository accountRepository,
+            ITransferRepository transferRepository,
+            ICustomerRepository customerRepository,
+            IUnitOfWork unitOfWork)
         {
             _accountRepository = accountRepository;
             _transferRepository = transferRepository;
+            _customerRepository = customerRepository;
             _unitOfWork = unitOfWork;
         }
 
-        public async Task ExecuteAsync(CreateTransferRequest request, CancellationToken cancellationToken = default)
+        public async Task ExecuteAsync(
+            CreateTransferRequest request,
+            string? userId,
+            bool isCustomer,
+            CancellationToken cancellationToken = default)
         {
             if (request.Amount <= 0)
             {
@@ -43,6 +53,23 @@ namespace WalletOps.Application.Services
                 throw new InvalidOperationException("Accounts must have the same currency.");
             }
 
+            if (isCustomer)
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    throw new InvalidOperationException("Authenticated user id was not found.");
+                }
+                var customer = await _customerRepository.GetByUserIdAsync(userId, cancellationToken);
+                if (customer is null)
+                {
+                    throw new InvalidOperationException("The authenticated user is not linked to a customer.");
+                }
+                if (fromAccount.CustomerId != customer.Id)
+                {
+                    throw new InvalidOperationException("You can only transfer from your own accounts.");
+                }
+            }
+
             fromAccount.Debit(request.Amount);
             toAccount.Credit(request.Amount);
 
@@ -63,9 +90,30 @@ namespace WalletOps.Application.Services
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<List<TransferListItemResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<List<TransferListItemResponse>> GetAllAsync(
+            string? userId,
+            bool isCustomer,
+            CancellationToken cancellationToken = default)
         {
             var transfers = await _transferRepository.GetAllAsync(cancellationToken);
+
+            if (isCustomer)
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    throw new InvalidOperationException("Authenticated user id was not found.");
+                }
+                var customer = await _customerRepository.GetByUserIdAsync(userId, cancellationToken);
+                if (customer is null)
+                {
+                    throw new InvalidOperationException("The authenticated user is not linked to a customer.");
+                }
+                var accounts = await _accountRepository.GetByCustomerIdAsync(customer.Id, cancellationToken);
+                var accountIds = accounts.Select(a => a.Id).ToHashSet();
+                transfers = transfers
+                    .Where(t => accountIds.Contains(t.FromAccountId) || accountIds.Contains(t.ToAccountId))
+                    .ToList();
+            }
 
             return transfers.Select(t => new TransferListItemResponse
             {

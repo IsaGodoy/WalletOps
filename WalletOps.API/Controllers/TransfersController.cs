@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using WalletOps.Application.DTOs;
 using WalletOps.Application.Interfaces;
 
@@ -23,7 +24,9 @@ namespace WalletOps.API.Controllers
         {
             try
             {
-                await _transferService.ExecuteAsync(request, cancellationToken);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isCustomer = User.IsInRole("Customer");
+                await _transferService.ExecuteAsync(request, userId, isCustomer, cancellationToken);
                 return Ok(new { message = "Transfer completed successfully." });
             }
             catch (InvalidOperationException ex)
@@ -35,8 +38,17 @@ namespace WalletOps.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
-            var transfers = await _transferService.GetAllAsync(cancellationToken);
-            return Ok(transfers);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isCustomer = User.IsInRole("Customer");
+                var transfers = await _transferService.GetAllAsync(userId, isCustomer, cancellationToken);
+                return Ok(transfers);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

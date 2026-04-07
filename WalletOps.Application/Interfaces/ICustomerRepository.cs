@@ -8,5 +8,6 @@ namespace WalletOps.Application.Interfaces
         Task<bool> ExistsByDocumentNumberAsync(string documentNumber, CancellationToken cancellationToken = default);
         Task<bool> ExistsByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<List<Customer>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Customer?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
     }
 }

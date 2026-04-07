@@ -12,5 +12,6 @@ namespace WalletOps.Application.Interfaces
         Task UpdateAsync(Account account, CancellationToken cancellationToken = default);
         Task AddAsync(Account account, CancellationToken cancellationToken = default);
         Task<bool> ExistsByAccountNumberAsync(string accountNumber, CancellationToken cancellationToken = default);
+        Task<List<Account>> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
     }
 }

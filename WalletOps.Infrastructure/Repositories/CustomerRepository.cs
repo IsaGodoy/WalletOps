@@ -34,5 +34,10 @@ namespace WalletOps.Infrastructure.Repositories
         {
             return await _context.Customers.ToListAsync(cancellationToken);
         }
+
+        public async Task<Customer?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Customers.FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+        }
     }
 }
