@@ -47,7 +47,7 @@ namespace WalletOps.Application.Services
 
             if (!Enum.IsDefined(typeof(Currency), request.Currency))
                 throw new InvalidOperationException("Invalid currency.");
-            
+
             var account = new Account
             {
                 Id = Guid.NewGuid(),
@@ -68,6 +68,23 @@ namespace WalletOps.Application.Services
         public async Task<List<Account>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             return await _accountRepository.GetAllAsync(cancellationToken);
+        }
+
+        public async Task<List<Account>> GetMyAccountsAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new InvalidOperationException("Authenticated user id was not found.");
+            }
+
+            var customer = await _customerRepository.GetByUserIdAsync(userId, cancellationToken);
+
+            if (customer is null)
+            {
+                throw new InvalidOperationException("The authenticated user is not linked to a customer.");
+            }
+            
+            return await _accountRepository.GetByCustomerIdAsync(customer.Id, cancellationToken);
         }
     }
 }
