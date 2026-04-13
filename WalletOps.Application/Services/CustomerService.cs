@@ -55,5 +55,42 @@ namespace WalletOps.Application.Services
         {
             return await _customerRepository.GetAllAsync(cancellationToken);
         }
+
+        public async Task<Customer> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var customer = await _customerRepository.GetByIdAsync(id, cancellationToken);
+
+            if (customer is null)
+            {
+                throw new InvalidOperationException("Customer was not found.");
+            }
+
+            return customer;
+        }
+
+        public async Task AssignUserAsync(Guid customerId, string userId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new InvalidOperationException("User id is required.");
+            }
+
+            var customer = await _customerRepository.GetByIdAsync(customerId, cancellationToken);
+
+            if (customer is null)
+            {
+                throw new InvalidOperationException("Customer was not found.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(customer.UserId))
+            {
+                throw new InvalidOperationException("Customer already has access assigned.");
+            }
+
+            customer.UserId = userId;
+
+            await _customerRepository.UpdateAsync(customer, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
     }
 }

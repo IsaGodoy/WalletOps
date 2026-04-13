@@ -10,5 +10,7 @@ namespace WalletOps.Application.Interfaces
     {
         Task<Guid> CreateAsync(CreateCustomerRequest request, CancellationToken cancellationToken = default);
         Task<List<Customer>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Customer> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task AssignUserAsync(Guid customerId, string userId, CancellationToken cancellationToken = default);
     }
 }
